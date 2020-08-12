@@ -1,7 +1,9 @@
 package lzw;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +17,8 @@ import java.util.Map;
 public class LZW 
 {
 	
-	private static final boolean debug = true;
-	private static final boolean detailed_debug = true;
+	private static final boolean debug = false;
+	private static final boolean detailed_debug = false;
 	
 	/**
 	 * Function to apply LZW decompression on a specified file and then write out to a specified location
@@ -29,7 +31,15 @@ public class LZW
 	public static void decompress(String inputFilePath, String outputFilePath) throws IOException, OutOfMemoryError, SecurityException
 	{
 		String text = decompress(inputFilePath);
-		//TODO Write out to outputFilePath
+		Path path = Paths.get(outputFilePath);
+		if(!Files.exists(path)){
+		    Files.createFile(path);
+		}
+		BufferedWriter writer = Files.newBufferedWriter(path);
+		writer.write(text);
+		writer.flush();
+		writer.close();
+		
 	}
 	
 	/**
@@ -83,11 +93,7 @@ public class LZW
 	{
 		//Initialise dictionary
 		if(debug) System.out.println("Initialising dictionary...");
-		Map<Integer, String> dict = new HashMap<Integer, String>();
-		for(int i = 0; i < 256; i++)
-		{
-			dict.put(i, "" + (char)i);
-		}
+		Map<Integer, String> dict = buildDict();
 		
 		String text = decompress_helper(codes, dict);
 		return text;
@@ -104,17 +110,31 @@ public class LZW
 		if(debug) System.out.println("Decoding codes...");
 		String text = dict.get(codes.remove(0));
 		StringBuilder result = new StringBuilder(text);
+		int dictSize = dict.size();
 		
 		for (int code : codes) {
+			if(dict.size() > 4095)
+			{
+				dict = buildDict();
+				dictSize = dict.size();
+			}
             String entry;
             if (dict.containsKey(code))
+            {
                 entry = dict.get(code);
-            else
+            }
+            else if(code == dictSize)
+            {
                 entry = text + text.charAt(0);
+            }
+            else
+            {
+            	throw new IllegalArgumentException("\nBad Code: " + code);
+            }
 
             result.append(entry);
 
-            dict.put(dict.size(), text + entry.charAt(0));
+            dict.put(dictSize++, text + entry.charAt(0));
 
             text = entry;
         }
@@ -157,7 +177,7 @@ public class LZW
 		//Add final byte decoded to list
 		if(offset == 3) codes.add(get12BitValue(input[input.length - 2], input[input.length - 1], false));
 		
-		if(debug) System.out.println("Codes: " + codes);
+		if(detailed_debug) System.out.println("Codes: " + codes);
 		return codes;
 	}
 	
@@ -174,18 +194,47 @@ public class LZW
 	{
 		int twelve_bit;
 		
+		//Convert bytes to binary strings
+		String bin_one = Integer.toBinaryString(one);
+		String bin_two = Integer.toBinaryString(two);
+		
+		//Pad/remove bits till correct size
+		while(bin_one.length() < 8)
+		{
+			bin_one = "0" + bin_one;
+		}
+		if(bin_one.length() > 8)
+		{
+			bin_one = bin_one.substring(bin_one.length() - 8);
+		}
+		
+		while(bin_two.length() < 8)
+		{
+			bin_two = "0" + bin_two;
+		}
+		if(bin_two.length() > 8)
+		{
+			bin_two = bin_two.substring(bin_two.length() - 8);
+		}
+		
+		//Select bits to use
 		if(firsthalf)
 		{
 			//All of first bit and second half of second bit
-			twelve_bit = (one << 4) | ((two & 240) >>> 4);
+			//((int) one & 0xFF) + ((((int) two & 0xFF) >> 4) << 8);
+			//(one << 4) | ((two & 240) >>> 4);
+			twelve_bit = Integer.parseInt(bin_one + bin_two.substring(0, 4), 2);
 		}
 		else
 		{
 			//Second half of first bit and all of second bit
-			twelve_bit = ((one & 15) << 8) | two;
+			//((int) one & 0xF) + (((int) two & 0xFF) << 4);
+			//((one & 15) << 8) | two;
+			twelve_bit = Integer.parseInt(bin_one.substring(4) + bin_two, 2);
 		}
 		if(detailed_debug) System.out.println("(" + one + "," + two + ") -> " + twelve_bit);
 		
+		//if(twelve_bit < 0) twelve_bit = ~twelve_bit | 1;
 		return twelve_bit;
 	}
 	
@@ -230,5 +279,15 @@ public class LZW
         }
         return result;
     }
+	
+	private static Map<Integer, String> buildDict()
+	{
+		Map<Integer, String> dict = new HashMap<Integer, String>();
+		for(int i = 0; i < 256; i++)
+		{
+			dict.put(i, "" + (char)i);
+		}
+		return dict;
+	}
 
 }

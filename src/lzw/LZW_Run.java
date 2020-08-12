@@ -1,6 +1,7 @@
 package lzw;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 /**
  * Main class to run LZW functions on CLI
@@ -10,32 +11,71 @@ public class LZW_Run {
 
 	public static void main(String[] args) 
 	{
-		int i = 15;
-		int j = 255;
-		int twelve_bit = ((i & 15) << 8) | j;
-		System.out.println("Ans: " + twelve_bit);
-		
-		int x = 4;
-		int y = 129;
-		int z = 244;
-		char twelve_bit2 = (char) ((x << 4) | ((y & 240) >>> 4));
-		int twelve_bit3 = ((y & 15) << 8) | z;
-		System.out.println("Ans2: " + twelve_bit2);
-		System.out.println("Ans3: " + twelve_bit3);
-		
-		// TODO Command line program to run compress using user provided input/output files
-		try 
+		if(args.length < 2)
 		{
-			System.out.println("OUTPUT: " + LZW.decompress("input_data/compressedfile2.z"));
-		} 
-		catch (OutOfMemoryError | SecurityException | IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			printUsage();
+			System.out.println("EXITING...");
+			System.exit(0);	
 		}
 		
-		System.out.println(LZW.decompress(LZW.compress("Hello my name is Basssssssil regi")));
+		switch(args[0])
+		{
+			case "-d":
+				if(args.length > 3)
+				{
+					printUsage();
+					break;
+				}
+				if(args.length == 3)
+				{
+					try 
+					{
+						LZW.decompress(args[1], args[2]);
+					} 
+					catch (OutOfMemoryError | SecurityException | IOException e) 
+					{
+						System.out.println("EXCEPTION");
+						e.printStackTrace();
+						break;
+					}
+					
+				}
+				else
+				{
+					try 
+					{
+						System.out.println("OUTPUT: " + LZW.decompress(args[1]));
+					} 
+					catch (OutOfMemoryError | SecurityException | IOException e) 
+					{
+						System.out.println("EXCEPTION");
+						e.printStackTrace();
+						break;
+					}
+				}
+				break;
+			case "-c":
+				Scanner in = new Scanner(System.in);
+				System.out.print("Input text to compress and press Enter: ");
+				String text = in.nextLine();
+				in.close();
+				System.out.println("OUTPUT: " + LZW.compress(text));
+				break;
+			default:
+				printUsage();
+				break;
+		}
 		
+		System.out.println("EXITING...");
+		
+	}
+	
+	private static void printUsage()
+	{
+		System.out.println("Invalid arguments");
+		System.out.println("USAGE:");
+		System.out.println("\t- java LZW_Run -c");
+		System.out.println("\t- java LZW_Run -d <input-file> <output-file>");
 	}
 
 }
