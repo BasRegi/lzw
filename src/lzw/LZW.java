@@ -93,7 +93,7 @@ public class LZW
 	{
 		//Initialise dictionary
 		if(debug) System.out.println("Initialising dictionary...");
-		Map<Integer, String> dict = buildDict();
+		Map<Integer, String> dict = buildDictD();
 		
 		String text = decompress_helper(codes, dict);
 		return text;
@@ -115,7 +115,7 @@ public class LZW
 		for (int code : codes) {
 			if(dict.size() > 4095)
 			{
-				dict = buildDict();
+				dict = buildDictD();
 				dictSize = dict.size();
 			}
             String entry;
@@ -247,17 +247,18 @@ public class LZW
 	public static List<Integer> compress(String uncompressed) 
 	{
         //Initialise the dictionary
-        Map<String,Integer> dict = new HashMap<String,Integer>();
-        for (int i = 0; i < 256; i++)
-        {
-            dict.put("" + (char)i, i);
-        }
+        Map<String,Integer> dict = buildDictC();
  
         String text = "";
         List<Integer> result = new ArrayList<Integer>();
         
         for (char c : uncompressed.toCharArray()) 
         {
+        	if(dict.size() > 4095)
+        	{
+        		dict = buildDictC();
+        	}
+        	
             String entry = text + c;
             if (dict.containsKey(entry))
             {
@@ -280,7 +281,11 @@ public class LZW
         return result;
     }
 	
-	private static Map<Integer, String> buildDict()
+	/**
+	 * Function to initialise dictionary with single characters for decompression
+	 * @return Map<Integer, String> key value pairs
+	 */
+	private static Map<Integer, String> buildDictD()
 	{
 		Map<Integer, String> dict = new HashMap<Integer, String>();
 		for(int i = 0; i < 256; i++)
@@ -288,6 +293,20 @@ public class LZW
 			dict.put(i, "" + (char)i);
 		}
 		return dict;
+	}
+	
+	/**
+	 * Function to initialise dictionary with single characters for compression
+	 * @return Map<String, Integer> key value pairs
+	 */
+	private static Map<String, Integer> buildDictC()
+	{
+		Map<String,Integer> dict = new HashMap<String,Integer>();
+        for (int i = 0; i < 256; i++)
+        {
+            dict.put("" + (char)i, i);
+        }
+        return dict;
 	}
 
 }

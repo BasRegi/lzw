@@ -21,11 +21,13 @@ public class LZW_Run {
 		switch(args[0])
 		{
 			case "-d":
+				//Decompress
 				if(args.length > 3)
 				{
 					printUsage();
 					break;
 				}
+				//Decompress to file
 				if(args.length == 3)
 				{
 					try 
@@ -40,6 +42,7 @@ public class LZW_Run {
 					}
 					
 				}
+				//Decompress to Command Line
 				else
 				{
 					try 
@@ -55,6 +58,7 @@ public class LZW_Run {
 				}
 				break;
 			case "-c":
+				//Compress and print output to command line
 				Scanner in = new Scanner(System.in);
 				System.out.print("Input text to compress and press Enter: ");
 				String text = in.nextLine();
