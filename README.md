@@ -1,4 +1,4 @@
-# lzw-compression
+# LZW Compression
 
 ## How to use
 ### LZW Library
