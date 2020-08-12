@@ -79,6 +79,7 @@ public class LZW_Run {
 		System.out.println("Invalid arguments");
 		System.out.println("USAGE:");
 		System.out.println("\t- java LZW_Run -c");
+		System.out.println("\t- java LZW_Run -d <input-file>");
 		System.out.println("\t- java LZW_Run -d <input-file> <output-file>");
 	}
 

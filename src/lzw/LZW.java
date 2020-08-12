@@ -221,15 +221,11 @@ public class LZW
 		if(firsthalf)
 		{
 			//All of first bit and second half of second bit
-			//((int) one & 0xFF) + ((((int) two & 0xFF) >> 4) << 8);
-			//(one << 4) | ((two & 240) >>> 4);
 			twelve_bit = Integer.parseInt(bin_one + bin_two.substring(0, 4), 2);
 		}
 		else
 		{
 			//Second half of first bit and all of second bit
-			//((int) one & 0xF) + (((int) two & 0xFF) << 4);
-			//((one & 15) << 8) | two;
 			twelve_bit = Integer.parseInt(bin_one.substring(4) + bin_two, 2);
 		}
 		if(detailed_debug) System.out.println("(" + one + "," + two + ") -> " + twelve_bit);
